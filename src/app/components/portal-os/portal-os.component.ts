@@ -36,7 +36,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
   public polylineOptions: google.maps.PolylineOptions = {
     strokeColor: '#5c7288',
     strokeOpacity: 0.7,
-    strokeWeight: 6,
+    strokeWeight: 5,
     geodesic: true
   };
 

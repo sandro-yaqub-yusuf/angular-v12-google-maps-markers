@@ -3,7 +3,6 @@ import { AbastecimentoRaw, AparelhoMobile, Detalhe, MapIcon, MarkerItem, Monitor
 
 const ASSETS_IMG = 'assets/img/';
 const TAMANHO_PIN = 43;
-const APARELHO_NAO_IDENTIFICADO = 'Aparelho não identificado';
 const CORES_TRAJETO = ['#5c7288', '#2288ee', '#8f58a7'];
 
 interface DetalheBase {
@@ -471,7 +470,7 @@ export class PortalOsMarker {
   private chaveAparelho(item: MonitoramentoEquipeRaw): string {
     const nome = (item?.modeloAparelho ?? '').trim();
 
-    return (nome.length > 0 ? nome : APARELHO_NAO_IDENTIFICADO);
+    return (nome.length > 0 ? nome : 'Aparelho não identificado');
   }
 
   private calcularRumo(origem: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral): number {
@@ -533,11 +532,11 @@ export class PortalOsMarker {
   private iconTrajeto(rotacao: number): google.maps.Symbol {
     return {
       path: 'M 0,-8 L 8,7 L 0,3 L -8,7 Z',
-      fillColor: '#010b20',
-      fillOpacity: 1,
+      fillColor: '#06163a',
+      fillOpacity: 0.7,
       strokeColor: '#ffffff',
-      strokeWeight: 2,
-      scale: 0.9,
+      strokeWeight: 1,
+      scale: 0.8,
       anchor: new google.maps.Point(0, 0),
       rotation: rotacao
     };
