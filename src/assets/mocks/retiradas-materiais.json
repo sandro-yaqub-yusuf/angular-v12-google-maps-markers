@@ -1,0 +1,43 @@
+[
+  {
+    "usu_login": "1000000002",
+    "usu_nome": "USUARIO ORIGEM EXEMPLO",
+    "trm_data_cadastro_mobile": "2026-09-28T12:46:44",
+    "id_tipo_documento": 44,
+    "tipo_documento": "Transferência Mobile",
+    "visto_eletronico_link": "https://example.com/visto.pdf",
+    "mev_data_movimento": "2026-09-28T14:54:33",
+    "predio": {
+      "pre_recno": 1,
+      "cid_recno": 8961,
+      "cid_nome": null,
+      "est_uf": null,
+      "pre_endereco": "AVENIDA EXEMPLO",
+      "epp_recno": 1,
+      "pre_flag_devolvido": "N",
+      "pre_data_devolucao": "0001-01-01T00:00:00",
+      "pre_cep": "17000-000",
+      "pre_numero": "100",
+      "pre_data_abertura": "0001-01-01T00:00:00",
+      "pre_bairro": "BAIRRO EXEMPLO",
+      "cpr_recno": 1,
+      "itc_recno": 1,
+      "usu_recno_cadastro": 0,
+      "usu_recno_alteracao": 0,
+      "pre_data_cadastro": "0001-01-01T00:00:00",
+      "pre_data_alteracao": "0001-01-01T00:00:00",
+      "pre_bloqueado": "N",
+      "pre_latitude": -22.307804,
+      "pre_longitude": -49.06272
+    },
+    "materialRetirada": [
+      {
+        "data": "02:54:33",
+        "pro_codigo": "0000-0000-0",
+        "pro_descricao": "CABO EXEMPLO",
+        "und_codigo": "MT",
+        "quant": 57
+      }
+    ]
+  }
+]

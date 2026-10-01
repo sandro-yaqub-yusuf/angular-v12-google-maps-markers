@@ -1,0 +1,14 @@
+[
+  {
+    "efd_recno": 3,
+    "efd_placa": "ABC1D23",
+    "efd_hodom": 95085,
+    "efd_horario_transacao": "16:46",
+    "efd_qt_mater": 47,
+    "efd_dt_trans": "2026-09-27T16:46:00",
+    "poc_recno": 1001,
+    "poc_descricao": "POSTO EXEMPLO 1",
+    "poc_latitude": -22.325337,
+    "poc_longitude": -49.071814
+  }
+]

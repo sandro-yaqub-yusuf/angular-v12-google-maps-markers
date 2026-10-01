@@ -1,0 +1,27 @@
+.app-header {
+  align-items: center;
+  background-color: #0066b3;
+  box-shadow: 0 2px 6px #0000004d;
+  color: #fff;
+  display: flex;
+  height: 50px;
+  justify-content: space-between;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1049;
+}
+
+.marca {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.perfil {
+  align-items: center;
+  display: flex;
+  font-size: .85rem;
+}
+
+.perfil select {
+  min-width: 220px;
+}

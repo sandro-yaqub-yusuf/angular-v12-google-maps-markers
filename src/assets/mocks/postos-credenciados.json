@@ -1,0 +1,26 @@
+[
+  {
+    "poc_recno": 2001,
+    "poc_descricao": "POSTO CREDENCIADO EXEMPLO 1",
+    "poc_endereco": null,
+    "poc_cidade": null,
+    "poc_bairro": null,
+    "poc_latitude": -22.323813,
+    "poc_longitude": -49.09488,
+    "poc_endereco_completo": null,
+    "pca_recno": 0,
+    "pco_telefone": null
+  },
+  {
+    "poc_recno": 2002,
+    "poc_descricao": "POSTO CREDENCIADO EXEMPLO 2",
+    "poc_endereco": null,
+    "poc_cidade": null,
+    "poc_bairro": null,
+    "poc_latitude": -22.349746,
+    "poc_longitude": -49.0532,
+    "poc_endereco_completo": null,
+    "pca_recno": 0,
+    "pco_telefone": null
+  }
+]

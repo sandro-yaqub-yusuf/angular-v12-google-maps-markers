@@ -1,0 +1,163 @@
+<div class="row w-100 m-0 p-0">
+  <div class="row w-100 mt-2">
+    <div class="col pr-0 ml-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a [routerLink]="['/']">Inicio</a></li>
+          <li class="breadcrumb-item">Portal de Serviços</li>
+          <li class="breadcrumb-item active" aria-current="page">{{ this.navigationText }}</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <div class="row w-100 m-0 mt-1 pl-3 pr-3">
+    <span
+      class="badge badge-blue1 cursor pl-3 pr-3 pt-1 pb-1 mr-3 linkBtn"
+      [class.active]="veiculo"
+      (click)="carregarVeiculos()"
+      title="Seleciona as marcações de Parada de Veículo.">Veículo
+      <span class="badge badge-light">{{(qtdeDadosVeiculo > 0 ? qtdeDadosVeiculo : '')}}</span>
+    </span>
+    <span
+      class="badge badge-purple cursor pl-3 pr-3 pt-1 pb-1 mr-3 linkBtn"
+      [class.active]="pontoControle"
+      (click)="carregarPontosControles()"
+      title="Seleciona as marcações dos Pontos de Controle.">Ponto Controle
+      <span class="badge badge-light">{{(qtdeDadosPontoControle > 0 ? qtdeDadosPontoControle : '')}}</span>
+    </span>
+    <span
+      class="badge badge-orange cursor pl-3 pr-3 pt-1 pb-1 mr-3 linkBtn"
+      [class.active]="postoCredenciado"
+      (click)="carregarPostosCredenciados()"
+      title="Seleciona os postos de abastecimentos na aproximação.">Posto
+      <span class="badge badge-light">{{(qtdeDadosPostoCredenciado > 0 ? qtdeDadosPostoCredenciado : '')}}</span>
+    </span>
+    <span
+      class="badge badge-blue2 cursor pl-3 pr-3 pt-1 pb-1 mr-3 linkBtn"
+      [class.active]="retiradaMaterial"
+      (click)="carregarRetiradasMateriais()"
+      title="Seleciona as marcações de Retirada de Material nas Unidades na aproximação.">Retirada Material
+      <span class="badge badge-light">{{(qtdeDadosRetiradaMaterial > 0 ? qtdeDadosRetiradaMaterial : '')}}</span>
+    </span>
+    <span
+      class="badge badge-pink cursor pl-3 pr-3 pt-1 pb-1 mr-3 linkBtn"
+      [class.active]="abastecimento"
+      (click)="carregarAbastecimentos()"
+      title="Seleciona os abastecimentos nos postos na aproximação.">Abastecimento
+      <span class="badge badge-light">{{(qtdeDadosAbastecimento > 0 ? qtdeDadosAbastecimento : '')}}</span>
+    </span>
+    <span
+      class="badge badge-blue3 cursor pl-3 pr-3 pt-1 pb-1 mr-3 linkBtn"
+      [class.active]="monitoramentoEquipe"
+      (click)="carregarMonitoramentosEquipes()"
+      title="Seleciona os monitoramentos de equipes">Rastreamento Mobile
+      <span class="badge badge-light">{{(retMonitoramentoEquipe.length > 0 ? retMonitoramentoEquipe.length : '')}}</span>
+    </span>
+  </div>
+  <div class="row w-100 m-0 mt-2 p-0">
+    <div class="col mapa-left">
+      <div class="widget-pane-visible">
+        <div class="scrollable">
+          <div class="card">
+            <div class="card card-body items" *ngFor="let item of detalhe; trackBy: trackByDetalhe">
+              <div (click)="centerChange(item)" (mouseenter)="onItemMouseEnter(item.id)" (mouseleave)="onItemMouseLeave(item.id)">
+                <div class="row mb-2 pt-2">
+                  <div class="items-left ml-3 p-0">
+                    <img [src]="item.icon.url" height="32" width="32" alt="">
+                  </div>
+                  <div class="items-center m-0 p-0">
+                    <h6 *ngIf="item.tituloLink?.length > 0">
+                      <button type="button" class="btn btn-link p-0" (click)="$event.stopPropagation(); gotoLink(item.tituloLink)">{{item.titulo}}</button>
+                    </h6>
+                    <h6 *ngIf="item.tituloLink?.length === 0">{{item.titulo}}</h6>
+                  </div>
+                  <div class="items-right m-0 p-0">
+                    <h6><div [innerHTML]="item.horaTitulo"></div></h6>
+                  </div>
+                  <div *ngIf="item.duracao" class="row ml-3 text-right">
+                    <div class="items-full m-0 p-0"><h6 style="font-size: 10px; padding-right: 44px;">Permanência: {{item.duracao}}</h6></div>
+                  </div>
+                  <div class="row mt-2 ml-3 p-0">
+                    <span *ngIf="!item.visible" class="badge badge-warning mr-1">Registro sem Latitude e Longitude</span>
+                    <span *ngIf="item.detalheLista4" class="badge badge-warning mr-1" style="background-color: #d0cfcd;" >{{item.detalheLista4}}</span>
+                  </div>
+                  <div class="row ml-2 mr-2 pt-2">
+                    <div class="items-show">
+                      <div *ngIf="item.detalhe1 !== ''" [innerHTML]="item.detalhe1"></div>
+                      <div *ngIf="item.detalhe2 !== ''" [innerHTML]="item.detalhe2"></div>
+                      <div *ngIf="item.detalhe3 !== ''" [innerHTML]="item.detalhe3"></div>
+                      <div *ngIf="item.detalhe4 !== ''" [innerHTML]="item.detalhe4"></div>
+                      <div *ngIf="item.detalhe5 !== ''" [innerHTML]="item.detalhe5"></div>
+                      <div *ngIf="item.detalhe6 !== ''" [innerHTML]="item.detalhe6"></div>
+                      <div *ngIf="item.detalhe7 !== ''" [innerHTML]="item.detalhe7"></div>
+                      <div *ngIf="item.detalhe8 !== ''" [innerHTML]="item.detalhe8"></div>
+                      <div *ngIf="item.detalheLista1?.length > 0">
+                        <button type="button" class="btn btn-link p-0" (click)="$event.stopPropagation(); showListItem(item)">{{item.detalheLista2}}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col mapa-right">
+      <div *ngIf="!temErro && !carregando && !possuiDados" class="mapa-google mt-5 p-0 align-items-center">
+        <div class="row align-items-center">
+          <div class="col align-self-center text-center">
+            <img src="assets/img/magnifying-glass.png" style="width: 150px;" alt="">
+            <p class="pt-3 m-0">Não foram encontrados dados para este Técnico nos filtros selecionados.</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="temErro" class="mapa-google m-0 pt-5 align-items-center alert-error">
+        <div class="col-12 align-self-center text-center">
+          <img src="assets/img/error.png" style="width: 320px;" alt="Erro ao carregar os dados">
+        </div>
+      </div>
+      <div *ngIf="!temErro && !carregando && possuiDados" class="mapa-google">
+        <div *ngIf="apiLoaded$ | async" class="col-12 m-0 p-0">
+          <google-map width="100%" [center]="center" [zoom]="zoom" [options]="options" (idle)="tentarEnquadrar()" (zoomChanged)="ajustarEspessuraTrajeto()">
+            <map-polyline *ngIf="trajeto.length > 1" [path]="trajeto" [options]="polylineOptions"></map-polyline>
+            <map-marker *ngFor="let item of markersVisiveis; trackBy: trackByMarker"
+              #markerElem="mapMarker"
+              [position]="item.position"
+              [icon]="$any(item.icon)"
+              (mapClick)="openInfo(markerElem, item.info)"
+              (mapMouseover)="!item.semAnimacao && markerMouseOver(markerElem)"
+              (mapMouseout)="!item.semAnimacao && markerMouseOut(markerElem)">
+            </map-marker>
+            <map-info-window [innerHTML]="infoContent"></map-info-window>
+          </google-map>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="detalhe-conteudo">
+    <div class="detalhe-menu" [class.detalhe-esconder]="!detalheVisivel" [class.detalhe-mostrar]="detalheVisivel">
+      <div class="detalhe-cabecalho">
+        <div class="detalhe-menu-cabecalho-titulo mt-0 mb-0 pt-0 pb-0">
+          <div class="mt-3">
+            <p>{{dadosDoDetalhe.Titulo}}</p>
+            <span class="detalhe-link detalhe-fechar" (click)="showListItem(undefined)">X</span>
+          </div>
+        </div>
+      </div>
+      <hr class="mt-0 mb-0 pt-0 pb-0">
+      <table class="table table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col" *ngFor="let cabecalho of dadosDoDetalhe.Cabecalho">{{cabecalho}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let linha of dadosDoDetalhe.Itens">
+            <td *ngFor="let celula of linha">{{celula}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

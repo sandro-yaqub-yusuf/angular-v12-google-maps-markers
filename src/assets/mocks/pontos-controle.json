@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "nome": "Ponto Exemplo 1",
+    "endereco": "RUA EXEMPLO 1, 100",
+    "latitude": -22.32552,
+    "longitude": -49.06758
+  },
+  {
+    "id": 2,
+    "nome": "Ponto Exemplo 2",
+    "endereco": "RUA EXEMPLO 2, 200",
+    "latitude": -22.32107,
+    "longitude": -49.07648
+  },
+  {
+    "id": 3,
+    "nome": "Ponto Exemplo 3",
+    "endereco": "RUA EXEMPLO 3, 300",
+    "latitude": -22.31512,
+    "longitude": -49.08444
+  }
+]
