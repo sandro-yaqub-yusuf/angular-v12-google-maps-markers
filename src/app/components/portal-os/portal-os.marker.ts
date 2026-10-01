@@ -1,8 +1,10 @@
 import { formatDate } from "@angular/common";
-import { AbastecimentoRaw, Detalhe, MapIcon, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, VeiculoRaw } from "./models/portal-os.model";
+import { AbastecimentoRaw, AparelhoMobile, Detalhe, MapIcon, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, VeiculoRaw } from "./models/portal-os.model";
 
 const ASSETS_IMG = 'assets/img/';
 const TAMANHO_PIN = 43;
+const APARELHO_NAO_IDENTIFICADO = 'Aparelho não identificado';
+const CORES_TRAJETO = ['#5c7288', '#2288ee', '#8f58a7'];
 
 interface DetalheBase {
   id: number;
@@ -173,23 +175,24 @@ export class PortalOsMarker {
     return lista;
   }
 
-  buildRastreamentoMobile(itens: MonitoramentoEquipeRaw[]): { lista: MarkerItem[]; detalhe: Detalhe[] } {
-    const lista: MarkerItem[] = [];
-    const detalhe: Detalhe[] = [];
-    const indiceUltimo = this.indiceUltimoPontoValido(itens ?? []);
-    const rotacoes = this.calcularRotacoesTrajeto(itens ?? []);
+  buildRastreamentoMobile(itens: MonitoramentoEquipeRaw[]): AparelhoMobile[] {
+    return this.agruparPorAparelho(itens).map((grupo, indiceGrupo) => {
+      const dados = grupo.dados;
+      const lista: MarkerItem[] = [];
+      const indiceUltimo = this.indiceUltimoPontoValido(dados);
+      const rotacoes = this.calcularRotacoesTrajeto(dados);
 
-    (itens ?? []).forEach((item, indice) => {
-      this.idAtual++;
+      dados.forEach((item, indice) => {
+        this.idAtual++;
 
-      const mobile = item.mobile;
-      const valido = this.mobileValido(item);
-      const isUltimo = (indice === indiceUltimo);
-      const horaTitulo = (mobile?.horaAtual ?? '');
-      const hora = (item.dataCadastro?.substring(11, 19) ?? '');
-      const duracao = (mobile?.duracao?.substring(0, 5) ?? '');
+        if (!this.mobileValido(item)) { return; }
 
-      if (valido) {
+        const mobile = item.mobile;
+        const isUltimo = (indice === indiceUltimo);
+        const horaTitulo = (mobile?.horaAtual ?? '');
+        const hora = (item.dataCadastro?.substring(11, 19) ?? '');
+        const duracao = (mobile?.duracao?.substring(0, 5) ?? '');
+
         lista.push(this.criarMarker({
           id: this.idAtual,
           hora,
@@ -207,30 +210,36 @@ export class PortalOsMarker {
             { label: 'Permanência', valor: duracao }
           ]
         }));
-      }
+      });
 
-      detalhe.push(this.criarDetalhe({
+      this.idAtual++;
+
+      const ultimo = (indiceUltimo >= 0 ? dados[indiceUltimo] : undefined);
+      const horaInicial = dados
+        .map(item => (item.dataCadastro?.substring(11, 19) ?? ''))
+        .filter(hora => hora.length > 0)
+        .sort((a, b) => a.localeCompare(b))[0];
+
+      const detalhe = this.criarDetalhe({
         id: this.idAtual,
         titulo: 'Rastreamento Mobile',
         tipo: 'Rastreamento Mobile',
-        detalhe1: `<b>IDTel: </b>${this.escapeHtml(item.idTel)}`,
-        detalhe2: `<b>Função: </b>${this.escapeHtml(item.funcao)}`,
-        detalhe3: `<b>Turno: </b>${this.escapeHtml(item.turnoDescricao)}`,
-        detalhe4: `<b>Aparelho: </b>${this.escapeHtml(item.modeloAparelho)}`,
-        detalhe5: '',
-        detalhe6: '',
-        detalhe7: '',
-        detalhe8: '',
-        horaTitulo,
-        hora,
-        duracao,
-        lat: (mobile?.latitude ?? 0),
-        lng: (mobile?.longitude ?? 0),
+        detalhe1: `<b>Aparelho: </b>${this.escapeHtml(grupo.nome)}`,
+        horaTitulo: '',
+        hora: (horaInicial ?? ''),
+        lat: (ultimo?.mobile?.latitude ?? 0),
+        lng: (ultimo?.mobile?.longitude ?? 0),
         iconeUrl: 'phone4_pin.png'
-      }, valido));
-    });
+      }, (indiceUltimo >= 0));
 
-    return { lista, detalhe };
+      return {
+        nome: grupo.nome,
+        cor: CORES_TRAJETO[indiceGrupo % CORES_TRAJETO.length],
+        dados,
+        lista,
+        detalhe
+      };
+    });
   }
 
   buildResidencia(itens: ResidenciaRaw[]): { lista: MarkerItem[]; detalhe: Detalhe[] } {
@@ -432,15 +441,48 @@ export class PortalOsMarker {
     };
   }
 
-  private calcularRumo(origem: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral): number {
-    const rad = Math.PI / 180;
-    const phi1 = origem.lat * rad;
-    const phi2 = destino.lat * rad;
-    const deltaLambda = (destino.lng - origem.lng) * rad;
-    const y = Math.sin(deltaLambda) * Math.cos(phi2);
-    const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+  private agruparPorAparelho(itens: MonitoramentoEquipeRaw[]): Array<{ nome: string; dados: MonitoramentoEquipeRaw[] }> {
+    const grupos = new Map<string, MonitoramentoEquipeRaw[]>();
 
-    return ((Math.atan2(y, x) / rad) + 360) % 360;
+    (itens ?? []).forEach(item => {
+      const chave = this.chaveAparelho(item);
+      const dados = grupos.get(chave);
+
+      if (dados) { dados.push(item); } 
+      else { grupos.set(chave, [item]); }
+    });
+
+    const resultado: Array<{ nome: string; dados: MonitoramentoEquipeRaw[] }> = [];
+
+    grupos.forEach((dados, nome) => resultado.push({ nome, dados }));
+
+    return resultado
+      .map((grupo, indice) => ({ grupo, indice, primeiraInclusao: this.primeiraInclusao(grupo.dados) }))
+      .sort((a, b) => (a.primeiraInclusao.localeCompare(b.primeiraInclusao) || (a.indice - b.indice)))
+      .map(item => item.grupo);
+  }
+
+  private primeiraInclusao(dados: MonitoramentoEquipeRaw[]): string {
+    const datas = dados.map(item => (item.dataCadastro ?? '')).filter(data => data.length > 0).sort((a, b) => a.localeCompare(b));
+
+    return (datas[0] ?? '');
+  }
+
+  private chaveAparelho(item: MonitoramentoEquipeRaw): string {
+    const nome = (item?.modeloAparelho ?? '').trim();
+
+    return (nome.length > 0 ? nome : APARELHO_NAO_IDENTIFICADO);
+  }
+
+  private calcularRumo(origem: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral): number {
+    const rad = (Math.PI / 180);
+    const phi1 = (origem.lat * rad);
+    const phi2 = (destino.lat * rad);
+    const deltaLambda = ((destino.lng - origem.lng) * rad)  ;
+    const y = (Math.sin(deltaLambda) * Math.cos(phi2));
+    const x = (Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda));
+
+    return (((Math.atan2(y, x) / rad) + 360) % 360);
   }
 
   private calcularRotacoesTrajeto(itens: MonitoramentoEquipeRaw[]): Map<number, number> {

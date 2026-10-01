@@ -51,7 +51,7 @@
       [class.active]="monitoramentoEquipe"
       (click)="carregarMonitoramentosEquipes()"
       title="Seleciona os monitoramentos de equipes">Rastreamento Mobile
-      <span class="badge badge-light">{{(retMonitoramentoEquipe.length > 0 ? retMonitoramentoEquipe.length : '')}}</span>
+      <span class="badge badge-light">{{(qtdeDadosMonitoramentoEquipe > 0 ? qtdeDadosMonitoramentoEquipe : '')}}</span>
     </span>
   </div>
   <div class="row w-100 m-0 mt-2 p-0">
@@ -119,8 +119,8 @@
       </div>
       <div *ngIf="!temErro && !carregando && possuiDados" class="mapa-google">
         <div *ngIf="apiLoaded$ | async" class="col-12 m-0 p-0">
-          <google-map width="100%" [center]="center" [zoom]="zoom" [options]="options" (idle)="tentarEnquadrar()" (zoomChanged)="ajustarEspessuraTrajeto()">
-            <map-polyline *ngIf="trajeto.length > 1" [path]="trajeto" [options]="polylineOptions"></map-polyline>
+          <google-map width="100%" [center]="center" [zoom]="zoom" [options]="options" (idle)="tentarEnquadrar()">
+            <map-polyline *ngFor="let t of trajetos; trackBy: trackByTrajeto" [path]="t.path" [options]="t.options"></map-polyline>
             <map-marker *ngFor="let item of markersVisiveis; trackBy: trackByMarker"
               #markerElem="mapMarker"
               [position]="item.position"

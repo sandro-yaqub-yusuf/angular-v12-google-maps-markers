@@ -126,6 +126,20 @@ export interface VeiculoRaw {
   quilometragem_percorrida: (number | string);
 }
 
+export interface AparelhoMobile {
+  nome: string;
+  cor: string;
+  dados: MonitoramentoEquipeRaw[];
+  lista: MarkerItem[];
+  detalhe: Detalhe;
+}
+
+export interface TrajetoMobile {
+  id: number;
+  path: google.maps.LatLngLiteral[];
+  options: google.maps.PolylineOptions;
+}
+
 export interface DadosGeo {
   abastecimentos: AbastecimentoRaw[];
   monitoramentosEquipes: MonitoramentoEquipeRaw[];

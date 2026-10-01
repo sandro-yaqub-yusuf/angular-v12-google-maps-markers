@@ -6,7 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Observable, Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import { GoogleMapsLoaderService } from '../core/google-maps/google-maps-loader.service';
-import { AbastecimentoRaw, DadosGeo, Detalhe, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, VeiculoRaw } from './models/portal-os.model';
+import { AbastecimentoRaw, AparelhoMobile, DadosGeo, Detalhe, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, TrajetoMobile, VeiculoRaw } from './models/portal-os.model';
 import { PortalOsMarker } from './portal-os.marker';
 import { PortalOsService } from './portal-os.service';
 
@@ -15,7 +15,6 @@ import { PortalOsService } from './portal-os.service';
   templateUrl: './portal-os.component.html',
   styleUrls: ['./portal-os.component.css']
 })
-
 export class PortalOsComponent implements OnInit, OnDestroy {
   @ViewChild(GoogleMap) set mapaRef(mapa: (GoogleMap | undefined)) {
     this.mapa = mapa;
@@ -27,7 +26,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
 
   readonly apiLoaded$: Observable<boolean>;
   readonly possuiChave: boolean;
-  readonly zoom = 10;
+  readonly zoom = 15;
   readonly options: google.maps.MapOptions = {
     mapTypeId: 'roadmap',
     zoomControl: true,
@@ -47,11 +46,15 @@ export class PortalOsComponent implements OnInit, OnDestroy {
   public temErro = false;
 
   public center: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
-  public trajeto: google.maps.LatLngLiteral[] = [];
+  public markersVisiveis: MarkerItem[] = [];
   public infoContent = '';
 
+  public aparelhosMobile: AparelhoMobile[] = [];
+  public detalhe: Detalhe[] = [];
+  public trajetos: TrajetoMobile[] = [];
+
   public abastecimento = true;
-  public monitoramentoEquipe = false;
+  public monitoramentoEquipe = true;
   public pontoControle = true;
   public postoCredenciado = true;
   public residenciaTecnico = true;
@@ -59,14 +62,11 @@ export class PortalOsComponent implements OnInit, OnDestroy {
   public veiculo = true;
 
   public qtdeDadosAbastecimento = 0;
+  public qtdeDadosMonitoramentoEquipe = 0;
   public qtdeDadosPontoControle = 0;
   public qtdeDadosPostoCredenciado = 0;
   public qtdeDadosRetiradaMaterial = 0;
   public qtdeDadosVeiculo = 0;
-
-  public detalhe: Detalhe[] = [];
-  public markersVisiveis: MarkerItem[] = [];
-  public retMonitoramentoEquipe: MonitoramentoEquipeRaw[] = [];
 
   public dadosDoDetalhe: { Titulo: string; Cabecalho: string[]; Itens: string[][] } = {
     Titulo: '',
@@ -81,14 +81,12 @@ export class PortalOsComponent implements OnInit, OnDestroy {
   private enquadrarPendente = false;
 
   private detalheAbastecimento: Detalhe[] = [];
-  private detalheMonitoramentoEquipe: Detalhe[] = [];
   private detalhePontoControle: Detalhe[] = [];
   private detalheRetiradaMaterial: Detalhe[] = [];
   private detalheResidencia: Detalhe[] = [];
   private detalheVeiculo: Detalhe[] = [];
 
   private listaAbastecimento: MarkerItem[] = [];
-  private listaMonitoramentoEquipe: MarkerItem[] = [];
   private listaPontoControle: MarkerItem[] = [];
   private listaPostoCredenciado: MarkerItem[] = [];
   private listaRetiradaMaterial: MarkerItem[] = [];
@@ -96,6 +94,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
   private listaVeiculo: MarkerItem[] = [];
 
   private retAbastecimento: AbastecimentoRaw[] = [];
+  private retMonitoramentoEquipe: MonitoramentoEquipeRaw[] = [];
   private retPontoControle: PontoControleRaw[] = [];
   private retPostoCredenciado: PostoCredenciadoRaw[] = [];
   private retResidencia: ResidenciaRaw[] = [];
@@ -202,6 +201,10 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     return item.id;
   }
 
+  trackByTrajeto(_indice: number, item: TrajetoMobile): number {
+    return item.id;
+  }
+
   tentarEnquadrar(): void {
     const googleMap = this.mapa?.googleMap;
 
@@ -289,10 +292,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.listaVeiculo = veiculo.lista;
     this.detalheVeiculo = veiculo.detalhe;
 
-    const monitoramentoEquipes = this.builder.buildRastreamentoMobile(this.retMonitoramentoEquipe);
-
-    this.listaMonitoramentoEquipe = monitoramentoEquipes.lista;
-    this.detalheMonitoramentoEquipe = monitoramentoEquipes.detalhe;
+    this.aparelhosMobile = this.builder.buildRastreamentoMobile(this.retMonitoramentoEquipe);
   }
 
   public carregarMapa() {
@@ -302,7 +302,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     const clusterResidencia = (this.residenciaTecnico ? this.ordenarHoraDesc(this.listaResidencia) : []);
     const clusterRetiradaMaterial = (this.retiradaMaterial ? this.ordenarHoraDesc(this.listaRetiradaMaterial) : []);
     const clusterVeiculo = (this.veiculo ? this.ordenarHoraDesc(this.listaVeiculo) : []);
-    const clusterMonitoramentoEquipe = this.ordenarHoraDesc(this.listaMonitoramentoEquipe);
+    const clusterMonitoramentoEquipe = this.ordenarHoraDesc(this.aparelhosMobile.flatMap(aparelho => aparelho.lista));
 
     const detalheAcumulado: Detalhe[] = [];
 
@@ -311,7 +311,6 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     if (this.residenciaTecnico) { detalheAcumulado.push(...this.detalheResidencia); }
     if (this.retiradaMaterial) { detalheAcumulado.push(...this.detalheRetiradaMaterial); }
     if (this.veiculo) { detalheAcumulado.push(...this.detalheVeiculo); }
-    if (this.monitoramentoEquipe) { detalheAcumulado.push(...this.detalheMonitoramentoEquipe); }
 
     this.markersVisiveis = [
       ...clusterAbastecimento,
@@ -323,9 +322,19 @@ export class PortalOsComponent implements OnInit, OnDestroy {
       ...clusterMonitoramentoEquipe
     ];
 
-    this.detalhe = this.ordenarHoraAsc(detalheAcumulado);
+    const detalheOrdenado = this.ordenarHoraAsc(detalheAcumulado);
+    const detalheMobile = (this.monitoramentoEquipe ? this.aparelhosMobile.map(aparelho => aparelho.detalhe) : []);
+    const indiceResidencia = detalheOrdenado.map(item => item.tipo).lastIndexOf('Residencia');
 
-    this.trajeto = this.ordenarHoraAsc(this.listaMonitoramentoEquipe).map(item => item.position);
+    detalheOrdenado.splice((indiceResidencia + 1), 0, ...detalheMobile);
+
+    this.detalhe = detalheOrdenado;
+
+    this.trajetos = this.aparelhosMobile.map((aparelho, indice) => ({
+      id: (indice + 1),
+      path: this.ordenarHoraAsc(aparelho.lista).map(item => item.position),
+      options: { ...this.polylineOptions, strokeColor: aparelho.cor }
+    })).filter(trajeto => trajeto.path.length > 1);
   }
 
   public tratarErroRequisicao(erro: any, titulo: string): void {
@@ -368,6 +377,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.retVeiculo = dados.veiculos;
 
     this.qtdeDadosAbastecimento = this.retAbastecimento.length;
+    this.qtdeDadosMonitoramentoEquipe = this.retMonitoramentoEquipe.length;
     this.qtdeDadosPontoControle = this.retPontoControle.length;
     this.qtdeDadosPostoCredenciado = this.retPostoCredenciado.length;
     this.qtdeDadosRetiradaMaterial = this.retRetiradaMaterial.length;
@@ -391,6 +401,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.enquadrarPendente = false;
 
     this.qtdeDadosAbastecimento = 0;
+    this.qtdeDadosMonitoramentoEquipe = 0;
     this.qtdeDadosPontoControle = 0;
     this.qtdeDadosPostoCredenciado = 0;
     this.qtdeDadosRetiradaMaterial = 0;
@@ -398,14 +409,12 @@ export class PortalOsComponent implements OnInit, OnDestroy {
 
     this.detalhe = [];
     this.detalheAbastecimento = [];
-    this.detalheMonitoramentoEquipe = [];
     this.detalhePontoControle = [];
     this.detalheResidencia = [];
     this.detalheRetiradaMaterial = [];
     this.detalheVeiculo = [];
 
     this.listaAbastecimento = [];
-    this.listaMonitoramentoEquipe = [];
     this.listaPontoControle = [];
     this.listaPostoCredenciado = [];
     this.listaResidencia = [];
@@ -420,8 +429,9 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.retRetiradaMaterial = [];
     this.retVeiculo = [];
 
+    this.aparelhosMobile = [];
     this.markersVisiveis = [];
-    this.trajeto = [];
+    this.trajetos = [];
   }
 
   private obterMapMarkerAnimavel(markerId: number): (MapMarker | undefined) {
