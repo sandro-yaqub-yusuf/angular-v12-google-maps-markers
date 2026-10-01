@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { GoogleMapsModule } from '@angular/google-maps';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { LinhaTempoComponent } from './linha-tempo/linha-tempo.component';
 import { PortalOsComponent } from './portal-os.component';
 import { PortalOsGuard } from './portal-os.guard';
 import { PortalOsRoutingModule } from './portal-os.routing';
@@ -16,7 +17,7 @@ import { PortalOsService } from './portal-os.service';
     BsDatepickerModule.forRoot(),
     PortalOsRoutingModule
   ],
-  declarations: [PortalOsComponent],
+  declarations: [PortalOsComponent, LinhaTempoComponent],
   exports: [PortalOsComponent],
   providers: [
     PortalOsGuard, 

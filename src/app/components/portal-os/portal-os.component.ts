@@ -47,6 +47,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
 
   public center: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
   public markersVisiveis: MarkerItem[] = [];
+  public markerSelecionadoTimeline?: number;
   public infoContent = '';
 
   public aparelhosMobile: AparelhoMobile[] = [];
@@ -226,6 +227,22 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.mapa?.fitBounds(bounds, 40);
   }
 
+  public abrirMarkerPorId(markerId: number): void {
+    const indice = this.markersVisiveis.findIndex(item => item.id === markerId);
+
+    if (indice < 0) { return; }
+
+    const item = this.markersVisiveis[indice];
+    const marker = this.markerElements?.get(indice);
+
+    this.markerSelecionadoTimeline = markerId;
+    this.center = { lat: item.position.lat, lng: item.position.lng };
+
+    this.mapa?.panTo(this.center);
+
+    if (marker) { this.openInfo(marker, item.info); }
+  }
+
   public carregarAbastecimentos(): void {
     this.abastecimento = !this.abastecimento;
 
@@ -399,6 +416,7 @@ export class PortalOsComponent implements OnInit, OnDestroy {
   private limparDados(): void {
     this.temErro = false;
     this.enquadrarPendente = false;
+    this.markerSelecionadoTimeline = undefined;
 
     this.qtdeDadosAbastecimento = 0;
     this.qtdeDadosMonitoramentoEquipe = 0;

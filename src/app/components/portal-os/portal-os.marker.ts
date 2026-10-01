@@ -1,9 +1,12 @@
 import { formatDate } from "@angular/common";
-import { AbastecimentoRaw, AparelhoMobile, Detalhe, MapIcon, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, VeiculoRaw } from "./models/portal-os.model";
+import { AbastecimentoRaw, AparelhoMobile, Detalhe, LinhaTempo, LinhaTempoMarca, MapIcon, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, VeiculoRaw } from "./models/portal-os.model";
 
 const ASSETS_IMG = 'assets/img/';
 const TAMANHO_PIN = 43;
 const CORES_TRAJETO = ['#5c7288', '#2288ee', '#8f58a7'];
+const FOLGA_LINHA_TEMPO = 600; // Folga (em segundos) antes do primeiro e depois do último rastreio na linha do tempo
+const LIMIAR_AGRUPAMENTO = (4 / 300); // Fração da duração abaixo da qual traços são agrupados (~4px numa linha de ~300px)
+const SEGUNDOS_DIA = 86400;
 
 interface DetalheBase {
   id: number;
@@ -180,6 +183,8 @@ export class PortalOsMarker {
       const lista: MarkerItem[] = [];
       const indiceUltimo = this.indiceUltimoPontoValido(dados);
       const rotacoes = this.calcularRotacoesTrajeto(dados);
+      const cor = CORES_TRAJETO[indiceGrupo % CORES_TRAJETO.length];
+      let idUltimo = -1;
 
       dados.forEach((item, indice) => {
         this.idAtual++;
@@ -188,6 +193,9 @@ export class PortalOsMarker {
 
         const mobile = item.mobile;
         const isUltimo = (indice === indiceUltimo);
+
+        if (isUltimo) { idUltimo = this.idAtual; }
+
         const horaTitulo = (mobile?.horaAtual ?? '');
         const hora = (item.dataCadastro?.substring(11, 19) ?? '');
         const duracao = (mobile?.duracao?.substring(0, 5) ?? '');
@@ -231,9 +239,11 @@ export class PortalOsMarker {
         iconeUrl: 'phone4_pin.png'
       }, (indiceUltimo >= 0));
 
+      detalhe.linhaTempo = this.montarLinhaTempo(lista, cor, idUltimo);
+
       return {
         nome: grupo.nome,
-        cor: CORES_TRAJETO[indiceGrupo % CORES_TRAJETO.length],
+        cor,
         dados,
         lista,
         detalhe
@@ -554,6 +564,69 @@ export class PortalOsMarker {
                 <div class="text-center mt-2"><a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener noreferrer">Iniciar Navegação</a></div>
               </div>
             </div>`;
+  }
+
+  private montarLinhaTempo(lista: MarkerItem[], cor: string, idUltimo: number): (LinhaTempo | undefined) {
+    const pontos = lista
+      .map((item, ordem) => ({ id: item.id, hora: item.hora, segundos: this.horaParaSegundos(item.hora), ordem }))
+      .filter(ponto => ponto.segundos >= 0)
+      .sort((a, b) => ((a.segundos - b.segundos) || (a.ordem - b.ordem)));
+
+    if (pontos.length === 0) { return undefined; }
+
+    const inicio = (pontos[0].segundos - FOLGA_LINHA_TEMPO);
+    const fim = (pontos[pontos.length - 1].segundos + FOLGA_LINHA_TEMPO);
+    const duracao = (fim - inicio);
+    const limiar = (duracao * LIMIAR_AGRUPAMENTO);
+
+    const grupos: Array<typeof pontos> = [];
+
+    pontos.forEach(ponto => {
+      const atual = grupos[grupos.length - 1];
+
+      if (atual && (ponto.segundos - atual[0].segundos) < limiar) { atual.push(ponto); }
+      else { grupos.push([ponto]); }
+    });
+
+    const marcas: LinhaTempoMarca[] = grupos.map(grupo => {
+      const media = (grupo.reduce((soma, ponto) => soma + ponto.segundos, 0) / grupo.length);
+      const destaque = grupo.some(ponto => ponto.id === idUltimo);
+      const horarios = grupo.map(ponto => ponto.hora);
+      const unicos = horarios.filter((hora, i) => horarios.indexOf(hora) === i);
+      const rotulo = (grupo.length > 1 ? `${unicos.join(', ')} (${grupo.length} rastreios)` : horarios[0]);
+
+      return {
+        posicao: (((media - inicio) / duracao) * 100),
+        horarios,
+        markerId: (destaque ? idUltimo : grupo[grupo.length - 1].id),
+        destaque,
+        agrupado: (grupo.length > 1),
+        rotulo: (destaque ? `${rotulo} - última posição` : rotulo)
+      };
+    });
+
+    return {
+      cor,
+      inicioLabel: this.segundosParaHora(inicio),
+      fimLabel: this.segundosParaHora(fim),
+      marcas
+    };
+  }
+
+  private horaParaSegundos(hora: string): number {
+    const partes = (hora ?? '').split(':').map(Number);
+
+    if (partes.length < 2 || partes.some(parte => isNaN(parte))) { return -1; }
+
+    return ((partes[0] * 3600) + (partes[1] * 60) + (partes[2] ?? 0));
+  }
+
+  private segundosParaHora(segundos: number): string {
+    const normalizado = (((Math.round(segundos) % SEGUNDOS_DIA) + SEGUNDOS_DIA) % SEGUNDOS_DIA);
+    const horas = Math.floor(normalizado / 3600);
+    const minutos = Math.floor((normalizado % 3600) / 60);
+
+    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
   }
 
   private indiceUltimoPontoValido(itens: MonitoramentoEquipeRaw[]): number {

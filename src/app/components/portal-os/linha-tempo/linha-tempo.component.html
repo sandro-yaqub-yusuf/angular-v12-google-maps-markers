@@ -1,0 +1,22 @@
+<div class="linha-tempo" role="group" [attr.aria-label]="'Linha do tempo de ' + linhaTempo.inicioLabel + ' a ' + linhaTempo.fimLabel">
+  <div class="trilho">
+    <div class="barra" [style.background]="linhaTempo.cor"></div>
+    <button *ngFor="let marca of linhaTempo.marcas; trackBy: trackByMarca"
+      type="button"
+      class="marca"
+      [class.agrupado]="marca.agrupado"
+      [class.destaque]="marca.destaque"
+      [class.ativo]="marca.markerId === markerSelecionado"
+      [style.left.%]="marca.posicao"
+      [attr.title]="marca.rotulo"
+      [attr.aria-label]="'Ir para o rastreio ' + marca.rotulo"
+      [attr.aria-pressed]="marca.markerId === markerSelecionado"
+      (click)="selecionar(marca)">
+      <span class="traco" [style.background]="linhaTempo.cor"></span>
+    </button>
+  </div>
+  <div class="rotulos" aria-hidden="true">
+    <span>{{ linhaTempo.inicioLabel }}</span>
+    <span>{{ linhaTempo.fimLabel }}</span>
+  </div>
+</div>

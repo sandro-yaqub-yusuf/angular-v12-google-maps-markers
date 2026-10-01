@@ -96,6 +96,13 @@
                       </div>
                     </div>
                   </div>
+                  <div *ngIf="item.linhaTempo" class="linha-tempo-wrapper" (click)="$event.stopPropagation()">
+                    <app-linha-tempo
+                      [linhaTempo]="item.linhaTempo"
+                      [markerSelecionado]="markerSelecionadoTimeline"
+                      (marcaClick)="abrirMarkerPorId($event)">
+                    </app-linha-tempo>
+                  </div>
                 </div>
               </div>
             </div>

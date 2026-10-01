@@ -173,6 +173,23 @@ export interface Detalhe {
   position: MapPosition;
   icon: MapIcon;
   visible: boolean;
+  linhaTempo?: LinhaTempo;
+}
+
+export interface LinhaTempoMarca {
+  posicao: number; // Posição horizontal na linha do tempo, em % (0 a 100)
+  horarios: string[];
+  markerId: number; // Id do MarkerItem aberto ao clicar (o mais recente do grupo)
+  destaque: boolean; // Contém o último rastreio do aparelho (pin de celular)
+  agrupado: boolean; // Representa mais de um rastreio
+  rotulo: string;
+}
+
+export interface LinhaTempo {
+  cor: string;
+  inicioLabel: string;
+  fimLabel: string;
+  marcas: LinhaTempoMarca[];
 }
 
 export interface MapIcon {

@@ -135,6 +135,15 @@ google-map {
   -ms-flex: 1;
 }
 
+.linha-tempo-wrapper {
+  box-sizing: border-box;
+  cursor: default;
+  flex: 0 0 auto;
+  margin: 6px calc(0.5rem + 10px) 0;
+  max-width: calc(100% - 1rem - 20px);
+  width: calc(100% - 1rem - 20px);
+}
+
 .linkBtn {
   cursor: pointer;
 }
