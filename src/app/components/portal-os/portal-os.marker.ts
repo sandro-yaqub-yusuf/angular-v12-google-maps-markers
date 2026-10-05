@@ -1,11 +1,9 @@
 import { formatDate } from "@angular/common";
 import { AbastecimentoRaw, AparelhoMobile, Detalhe, LinhaTempo, LinhaTempoMarca, MapIcon, MarkerItem, MonitoramentoEquipeRaw, PontoControleRaw, PostoCredenciadoRaw, ResidenciaRaw, RetiradaMaterialRaw, VeiculoRaw } from "./models/portal-os.model";
 
-const ASSETS_IMG = 'assets/img/';
-const TAMANHO_PIN = 43;
 const CORES_TRAJETO = ['#5c7288', '#2288ee', '#8f58a7'];
 const FOLGA_LINHA_TEMPO = 600; // Folga (em segundos) antes do primeiro e depois do último rastreio na linha do tempo
-const LIMIAR_AGRUPAMENTO = (4 / 300); // Fração da duração abaixo da qual traços são agrupados (~4px numa linha de ~300px)
+const LIMITAR_AGRUPAMENTO = (4 / 300); // Fração da duração abaixo da qual traços são agrupados (~4px numa linha de ~300px)
 const SEGUNDOS_DIA = 86400;
 
 interface DetalheBase {
@@ -297,8 +295,8 @@ export class PortalOsMarker {
       this.idAtual++;
 
       const valido = this.posicaoValida(item.predio.pre_latitude, item.predio.pre_longitude);
-      const horaTitulo = this.substrHora(item.mev_data_movimento, 5);
-      const hora = this.substrHora(item.mev_data_movimento, 8);
+      const horaTitulo = this.pegarHoraMinuto(item.mev_data_movimento, 5);
+      const hora = this.pegarHoraMinuto(item.mev_data_movimento, 8);
       const ehEntradaPredio = (item.id_tipo_documento === 2);
 
       const linha1 = (ehEntradaPredio
@@ -360,8 +358,8 @@ export class PortalOsMarker {
       this.idAtual++;
 
       const valido = this.posicaoValida(item.latitude_inicio, item.longitude_inicio);
-      const horaTitulo = this.substrHora(item.data_inicio, 5);
-      const hora = this.substrHora(item.data_inicio, 8);
+      const horaTitulo = this.pegarHoraMinuto(item.data_inicio, 5);
+      const hora = this.pegarHoraMinuto(item.data_inicio, 8);
 
       if (valido) {
         lista.push(this.criarMarker({
@@ -374,9 +372,9 @@ export class PortalOsMarker {
           tituloInfo: `<span class="badge badge-blue1">${this.escapeHtml(horaTitulo)}</span> - PARADA - ITURAN`,
           linhasInfo: [
             { label: 'Placa Veículo', valor: item.placa },
-            { label: 'Início Viagem', valor: this.substrHora(item.data_inicio, 8) },
+            { label: 'Início Viagem', valor: this.pegarHoraMinuto(item.data_inicio, 8) },
             { label: 'Local Início', valor: (item.endereco_inicio ?? '') },
-            { label: 'Término Viagem', valor: this.substrHora(item.data_termino, 8) },
+            { label: 'Término Viagem', valor: this.pegarHoraMinuto(item.data_termino, 8) },
             { label: 'Local Término', valor: (item.endereco_termino ?? '') },
             { label: 'Duração', valor: item.tempo },
             { label: 'KM Percorridos', valor: item.quilometragem_percorrida }
@@ -390,9 +388,9 @@ export class PortalOsMarker {
         tipo: 'Parada - Ituran',
         detalhe1: '<b>Rastreador: </b>Ituran',
         detalhe2: `<b>Placa Veículo: </b>${this.escapeHtml(item.placa)}`,
-        detalhe3: `<b>Início Viagem: </b>${this.escapeHtml(this.substrHora(item.data_inicio, 8))}`,
+        detalhe3: `<b>Início Viagem: </b>${this.escapeHtml(this.pegarHoraMinuto(item.data_inicio, 8))}`,
         detalhe4: `<b>Local Início: </b>${this.escapeHtml(item.endereco_inicio ?? '')}`,
-        detalhe5: `<b>Término Viagem: </b>${this.escapeHtml(this.substrHora(item.data_termino, 8))}`,
+        detalhe5: `<b>Término Viagem: </b>${this.escapeHtml(this.pegarHoraMinuto(item.data_termino, 8))}`,
         detalhe6: `<b>Local Término: </b>${this.escapeHtml(item.endereco_termino ?? '')}`,
         detalhe7: `<b>Duração: </b>${this.escapeHtml(item.tempo)}`,
         detalhe8: `<b>KM Percorridos: </b>${this.escapeHtml(item.quilometragem_percorrida)}`,
@@ -536,7 +534,7 @@ export class PortalOsMarker {
   }
 
   private icon(iconeUrl: string): MapIcon {
-    return { url: (iconeUrl ? ASSETS_IMG + iconeUrl : undefined), scaledSize: { height: TAMANHO_PIN, width: TAMANHO_PIN } as google.maps.Size };
+    return { url: (iconeUrl ? ('assets/img/' + iconeUrl) : undefined), scaledSize: { height: 43, width: 43 } as google.maps.Size };
   }
 
   private iconTrajeto(rotacao: number): google.maps.Symbol {
@@ -577,7 +575,7 @@ export class PortalOsMarker {
     const inicio = (pontos[0].segundos - FOLGA_LINHA_TEMPO);
     const fim = (pontos[pontos.length - 1].segundos + FOLGA_LINHA_TEMPO);
     const duracao = (fim - inicio);
-    const limiar = (duracao * LIMIAR_AGRUPAMENTO);
+    const limiar = (duracao * LIMITAR_AGRUPAMENTO);
 
     const grupos: Array<typeof pontos> = [];
 
@@ -647,11 +645,11 @@ export class PortalOsMarker {
     return !!(item.mobile?.latitude && item.mobile?.longitude);
   }
 
-  private posicaoValida(lat: number, lng: number): boolean {
-    return !!(lat && lng);
+  private pegarHoraMinuto(dataHora: string, tamanho: number): string {
+    return (dataHora ? dataHora.slice(-8).substring(0, tamanho) : '');
   }
 
-  private substrHora(dataHora: string, tamanho: number): string {
-    return (dataHora ? dataHora.slice(-8).substring(0, tamanho) : '');
+  private posicaoValida(lat: number, lng: number): boolean {
+    return !!(lat && lng);
   }
 }
