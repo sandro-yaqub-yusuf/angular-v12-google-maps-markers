@@ -111,7 +111,7 @@
       </div>
     </div>
     <div class="col mapa-right">
-      <div *ngIf="!temErro && !carregando && !possuiDados" class="mapa-google mt-5 p-0 align-items-center">
+      <div *ngIf="!temErro && markersVisiveis.length <= 0" class="mapa-google mt-5 p-0 align-items-center">
         <div class="row align-items-center">
           <div class="col align-self-center text-center">
             <img src="assets/img/magnifying-glass.png" style="width: 150px;" alt="">
@@ -124,9 +124,9 @@
           <img src="assets/img/error.png" style="width: 320px;" alt="Erro ao carregar os dados">
         </div>
       </div>
-      <div *ngIf="!temErro && !carregando && possuiDados" class="mapa-google">
+      <div *ngIf="!temErro && markersVisiveis.length > 0" class="mapa-google">
         <div *ngIf="apiLoaded$ | async" class="col-12 m-0 p-0">
-          <google-map width="100%" [center]="center" [zoom]="zoom" [options]="options" (idle)="tentarEnquadrar()">
+          <google-map width="100%" [center]="center" [zoom]="zoom" [options]="options" (idle)="enquadrar()">
             <map-polyline *ngFor="let t of trajetos; trackBy: trackByTrajeto" [path]="t.path" [options]="t.options"></map-polyline>
             <map-marker *ngFor="let item of markersVisiveis; trackBy: trackByMarker"
               #markerElem="mapMarker"

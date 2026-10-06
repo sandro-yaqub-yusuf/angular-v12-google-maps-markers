@@ -15,11 +15,12 @@ import { PortalOsService } from './portal-os.service';
   templateUrl: './portal-os.component.html',
   styleUrls: ['./portal-os.component.css']
 })
+
 export class PortalOsComponent implements OnInit, OnDestroy {
   @ViewChild(GoogleMap) set mapaRef(mapa: (GoogleMap | undefined)) {
     this.mapa = mapa;
 
-    this.tentarEnquadrar();
+    this.enquadrar();
   }
   @ViewChild(MapInfoWindow) private infoWindow?: MapInfoWindow;
   @ViewChildren(MapMarker) private markerElements?: QueryList<MapMarker>;
@@ -40,7 +41,6 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     geodesic: true
   };
 
-  public carregando = true;
   public detalheVisivel = false;
   public navigationText = '';
   public temErro = false;
@@ -115,11 +115,6 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.localeService.use('pt-br');
   }
 
-  get possuiDados(): boolean {
-    return (this.retAbastecimento.length + this.retMonitoramentoEquipe.length + this.retPontoControle.length +
-      this.retPostoCredenciado.length + this.retResidencia.length + this.retRetiradaMaterial.length + this.retVeiculo.length) > 0;
-  }
-
   ngOnInit(): void {
     this.navigationText = 'Dados Diário por Técnico - Administrativo';
 
@@ -132,7 +127,6 @@ export class PortalOsComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.carregando = false;
         this.temErro = true;
 
         this.toastr.error((this.possuiChave ? 'Não foi possível carregar o Google Maps.' : 'Chave da API do Google Maps não configurada.'), 'Google Maps');
@@ -204,27 +198,6 @@ export class PortalOsComponent implements OnInit, OnDestroy {
 
   trackByTrajeto(_indice: number, item: TrajetoMobile): number {
     return item.id;
-  }
-
-  tentarEnquadrar(): void {
-    const googleMap = this.mapa?.googleMap;
-
-    if (!this.enquadrarPendente || !googleMap || this.markersVisiveis.length === 0) { return; }
-
-    this.enquadrarPendente = false;
-
-    if (this.markersVisiveis.length === 1) {
-      googleMap.panTo(this.markersVisiveis[0].position);
-      googleMap.setZoom(15);
-
-      return;
-    }
-
-    const bounds = new google.maps.LatLngBounds();
-
-    this.markersVisiveis.forEach(item => bounds.extend(item.position));
-
-    this.mapa?.fitBounds(bounds, 40);
   }
 
   public abrirMarkerPorId(markerId: number): void {
@@ -354,6 +327,27 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     })).filter(trajeto => trajeto.path.length > 1);
   }
 
+  public enquadrar(): void {
+    const googleMap = this.mapa?.googleMap;
+
+    if (!this.enquadrarPendente || !googleMap || this.markersVisiveis.length === 0) { return; }
+
+    this.enquadrarPendente = false;
+
+    if (this.markersVisiveis.length === 1) {
+      googleMap.panTo(this.markersVisiveis[0].position);
+      googleMap.setZoom(15);
+
+      return;
+    }
+
+    const bounds = new google.maps.LatLngBounds();
+
+    this.markersVisiveis.forEach(item => bounds.extend(item.position));
+
+    this.mapa?.fitBounds(bounds, 40);
+  }
+
   public tratarErroRequisicao(erro: any, titulo: string): void {
     let msgErro = 'Ocorreu um erro. Entre em contato com o Suporte !';
 
@@ -367,14 +361,11 @@ export class PortalOsComponent implements OnInit, OnDestroy {
 
     this.toastr.error(msgErro, titulo);
 
-    this.carregando = false;
     this.temErro = true;
   }
 
   private chamarApiGEO() {
     this.limparDados();
-
-    this.carregando = true;
 
     this.portalOsService.carregarDados()
       .pipe(takeUntil(this.destroy$))
@@ -408,9 +399,8 @@ export class PortalOsComponent implements OnInit, OnDestroy {
     this.carregarMapa();
 
     this.enquadrarPendente = true;
-    this.carregando = false;
 
-    this.tentarEnquadrar();
+    this.enquadrar();
   }
 
   private limparDados(): void {

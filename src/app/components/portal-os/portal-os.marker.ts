@@ -239,13 +239,7 @@ export class PortalOsMarker {
 
       detalhe.linhaTempo = this.montarLinhaTempo(lista, cor, idUltimo);
 
-      return {
-        nome: grupo.nome,
-        cor,
-        dados,
-        lista,
-        detalhe
-      };
+      return { nome: grupo.nome, cor, dados, lista, detalhe };
     });
   }
 
@@ -409,45 +403,6 @@ export class PortalOsMarker {
     this.idAtual = 0;
   }
 
-  private criarDetalhe(base: DetalheBase, visible: boolean): Detalhe {
-    return {
-      id: base.id,
-      titulo: base.titulo,
-      tituloLink: (base.tituloLink ?? ''),
-      tipo: base.tipo,
-      detalhe1: (base.detalhe1 ?? ''),
-      detalhe2: (base.detalhe2 ?? ''),
-      detalhe3: (base.detalhe3 ?? ''),
-      detalhe4: (base.detalhe4 ?? ''),
-      detalhe5: (base.detalhe5 ?? ''),
-      detalhe6: (base.detalhe6 ?? ''),
-      detalhe7: (base.detalhe7 ?? ''),
-      detalhe8: (base.detalhe8 ?? ''),
-      detalheLista1: (base.detalheLista1 ?? []),
-      detalheLista2: (base.detalheLista2 ?? ''),
-      detalheLista3: (base.detalheLista3 ?? []),
-      detalheLista4: (base.detalheLista4 ?? ''),
-      horaTitulo: base.horaTitulo,
-      hora: base.hora,
-      duracao: (base.duracao ?? ''),
-      position: { lat: base.lat, lng: base.lng },
-      icon: this.icon(base.iconeUrl),
-      visible
-    };
-  }
-
-  private criarMarker(base: MarkerBase): MarkerItem {
-    return {
-      id: base.id,
-      hora: base.hora,
-      horaTitulo: base.horaTitulo,
-      position: { lat: base.lat, lng: base.lng },
-      icon: (base.iconeSymbol ?? this.icon(base.iconeUrl)),
-      info: this.montarInfoWindow(base.tituloInfo, base.linhasInfo, base.lat, base.lng, base.duracao),
-      semAnimacao: !!base.iconeSymbol
-    };
-  }
-
   private agruparPorAparelho(itens: MonitoramentoEquipeRaw[]): Array<{ nome: string; dados: MonitoramentoEquipeRaw[] }> {
     const grupos = new Map<string, MonitoramentoEquipeRaw[]>();
 
@@ -467,18 +422,6 @@ export class PortalOsMarker {
       .map((grupo, indice) => ({ grupo, indice, primeiraInclusao: this.primeiraInclusao(grupo.dados) }))
       .sort((a, b) => (a.primeiraInclusao.localeCompare(b.primeiraInclusao) || (a.indice - b.indice)))
       .map(item => item.grupo);
-  }
-
-  private primeiraInclusao(dados: MonitoramentoEquipeRaw[]): string {
-    const datas = dados.map(item => (item.dataCadastro ?? '')).filter(data => data.length > 0).sort((a, b) => a.localeCompare(b));
-
-    return (datas[0] ?? '');
-  }
-
-  private chaveAparelho(item: MonitoramentoEquipeRaw): string {
-    const nome = (item?.modeloAparelho ?? '').trim();
-
-    return (nome.length > 0 ? nome : 'Aparelho não identificado');
   }
 
   private calcularRumo(origem: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral): number {
@@ -524,6 +467,51 @@ export class PortalOsMarker {
     return rotacoes;
   }
 
+  private chaveAparelho(item: MonitoramentoEquipeRaw): string {
+    const nome = (item?.modeloAparelho ?? '').trim();
+
+    return (nome.length > 0 ? nome : 'Aparelho não identificado');
+  }
+
+  private criarDetalhe(base: DetalheBase, visible: boolean): Detalhe {
+    return {
+      id: base.id,
+      titulo: base.titulo,
+      tituloLink: (base.tituloLink ?? ''),
+      tipo: base.tipo,
+      detalhe1: (base.detalhe1 ?? ''),
+      detalhe2: (base.detalhe2 ?? ''),
+      detalhe3: (base.detalhe3 ?? ''),
+      detalhe4: (base.detalhe4 ?? ''),
+      detalhe5: (base.detalhe5 ?? ''),
+      detalhe6: (base.detalhe6 ?? ''),
+      detalhe7: (base.detalhe7 ?? ''),
+      detalhe8: (base.detalhe8 ?? ''),
+      detalheLista1: (base.detalheLista1 ?? []),
+      detalheLista2: (base.detalheLista2 ?? ''),
+      detalheLista3: (base.detalheLista3 ?? []),
+      detalheLista4: (base.detalheLista4 ?? ''),
+      horaTitulo: base.horaTitulo,
+      hora: base.hora,
+      duracao: (base.duracao ?? ''),
+      position: { lat: base.lat, lng: base.lng },
+      icon: this.icon(base.iconeUrl),
+      visible
+    };
+  }
+
+  private criarMarker(base: MarkerBase): MarkerItem {
+    return {
+      id: base.id,
+      hora: base.hora,
+      horaTitulo: base.horaTitulo,
+      position: { lat: base.lat, lng: base.lng },
+      icon: (base.iconeSymbol ?? this.icon(base.iconeUrl)),
+      info: this.montarInfoWindow(base.tituloInfo, base.linhasInfo, base.lat, base.lng, base.duracao),
+      semAnimacao: !!base.iconeSymbol
+    };
+  }
+
   private escapeHtml(valor: (string | number)): string {
     return String(valor ?? '')
       .replace(/&/g, '&amp;')
@@ -531,6 +519,14 @@ export class PortalOsMarker {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  private horaParaSegundos(hora: string): number {
+    const partes = (hora ?? '').split(':').map(Number);
+
+    if (partes.length < 2 || partes.some(parte => isNaN(parte))) { return -1; }
+
+    return ((partes[0] * 3600) + (partes[1] * 60) + (partes[2] ?? 0));
   }
 
   private icon(iconeUrl: string): MapIcon {
@@ -548,6 +544,24 @@ export class PortalOsMarker {
       anchor: new google.maps.Point(0, 0),
       rotation: rotacao
     };
+  }
+
+  private indiceUltimoPontoValido(itens: MonitoramentoEquipeRaw[]): number {
+    let indiceUltimo = -1;
+
+    itens.forEach((item, indice) => {
+      if (!this.mobileValido(item)) { return; }
+
+      if (indiceUltimo < 0 || (item.dataCadastro ?? '') >= (itens[indiceUltimo].dataCadastro ?? '')) {
+        indiceUltimo = indice;
+      }
+    });
+
+    return indiceUltimo;
+  }
+
+  private mobileValido(item: MonitoramentoEquipeRaw): boolean {
+    return !!(item.mobile?.latitude && item.mobile?.longitude);
   }
 
   private montarInfoWindow(tituloHtml: string, linhas: Array<{ label: string; valor: (string | number) }>, lat: number, lng: number, duracao?: string): string {
@@ -603,46 +617,7 @@ export class PortalOsMarker {
       };
     });
 
-    return {
-      cor,
-      inicioLabel: this.segundosParaHora(inicio),
-      fimLabel: this.segundosParaHora(fim),
-      marcas
-    };
-  }
-
-  private horaParaSegundos(hora: string): number {
-    const partes = (hora ?? '').split(':').map(Number);
-
-    if (partes.length < 2 || partes.some(parte => isNaN(parte))) { return -1; }
-
-    return ((partes[0] * 3600) + (partes[1] * 60) + (partes[2] ?? 0));
-  }
-
-  private segundosParaHora(segundos: number): string {
-    const normalizado = (((Math.round(segundos) % SEGUNDOS_DIA) + SEGUNDOS_DIA) % SEGUNDOS_DIA);
-    const horas = Math.floor(normalizado / 3600);
-    const minutos = Math.floor((normalizado % 3600) / 60);
-
-    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
-  }
-
-  private indiceUltimoPontoValido(itens: MonitoramentoEquipeRaw[]): number {
-    let indiceUltimo = -1;
-
-    itens.forEach((item, indice) => {
-      if (!this.mobileValido(item)) { return; }
-
-      if (indiceUltimo < 0 || (item.dataCadastro ?? '') >= (itens[indiceUltimo].dataCadastro ?? '')) {
-        indiceUltimo = indice;
-      }
-    });
-
-    return indiceUltimo;
-  }
-
-  private mobileValido(item: MonitoramentoEquipeRaw): boolean {
-    return !!(item.mobile?.latitude && item.mobile?.longitude);
+    return { cor, inicioLabel: this.segundosParaHora(inicio), fimLabel: this.segundosParaHora(fim), marcas };
   }
 
   private pegarHoraMinuto(dataHora: string, tamanho: number): string {
@@ -651,5 +626,19 @@ export class PortalOsMarker {
 
   private posicaoValida(lat: number, lng: number): boolean {
     return !!(lat && lng);
+  }
+
+  private primeiraInclusao(dados: MonitoramentoEquipeRaw[]): string {
+    const datas = dados.map(item => (item.dataCadastro ?? '')).filter(data => data.length > 0).sort((a, b) => a.localeCompare(b));
+
+    return (datas[0] ?? '');
+  }
+
+  private segundosParaHora(segundos: number): string {
+    const normalizado = (((Math.round(segundos) % SEGUNDOS_DIA) + SEGUNDOS_DIA) % SEGUNDOS_DIA);
+    const horas = Math.floor(normalizado / 3600);
+    const minutos = Math.floor((normalizado % 3600) / 60);
+
+    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
   }
 }
